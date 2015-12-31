@@ -1,19 +1,11 @@
 var express = require("express");
+var bodyParser = require("body-parser");
 var app = express();
 var PORT = process.env.PORT || 3000;
-var tareas = [{
-	id: 1,
-	description: "Completar curso de Node.js",
-	completed: false
-}, {
-	id: 2,
-	description: "Entrenar markers",
-	completed: false
-}, {
-	id: 3,
-	description: "Ejercicios de meter y progress",
-	completed: true
-}];
+var tareas = [];
+var sigTareaId = 1;
+
+app.use(bodyParser.json());
 
 app.get("/", function(req, res){
 	res.send("Todo API Root");
@@ -35,8 +27,17 @@ app.get("/tareas/:id", function(req, res){
 		res.json(matchedTarea);
 	} else {
 		res.status(404).send();
-	}
-	//res.send("Asking for todo with id of " + req.params.id);
+	}	
+});
+
+app.post("/tareas", function(req, res){
+	var body = req.body;
+
+	body.id = sigTareaId++;
+	tareas.push(body);
+
+	console.log("Description: " + body);
+	res.json(body);
 });
 
 app.listen(PORT, function(){
