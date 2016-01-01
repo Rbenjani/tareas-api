@@ -12,10 +12,13 @@ app.get("/", function(req, res){
 	res.send("Todo API Root");
 });
 
+// GET /tareas
 app.get("/tareas", function(req, res){
 	res.json(tareas);
 });
 
+
+// GET /tareas/:id
 app.get("/tareas/:id", function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
 	var matchedTarea = _.findWhere(tareas, {id: tareaID});
@@ -40,6 +43,18 @@ app.post("/tareas", function(req, res){
 
 	console.log("Description: " + body);
 	res.json(body);
+});
+
+app.delete("/tareas/:id", function(req, res){
+	var tareaID = parseInt(req.params.id, 10);
+	var matchedTarea = _.findWhere(tareas, {id: tareaID});
+
+	if(!matchedTarea)
+		res.status(404).json({"error":"Tarea no encontrada con esa id"});
+	else {
+		tareas = _.without(tareas, matchedTarea); // Devuelve el array quitando matchedTarea
+		res.json(matchedTarea);
+	}
 });
 
 app.listen(PORT, function(){
