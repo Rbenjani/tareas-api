@@ -30,6 +30,7 @@ app.get("/tareas/:id", function(req, res){
 	}	
 });
 
+// POST /tareas
 app.post("/tareas", function(req, res){
 	var body = _.pick(req.body, "description", "completed");
 
@@ -45,6 +46,7 @@ app.post("/tareas", function(req, res){
 	res.json(body);
 });
 
+// DELETE /tareas/:id
 app.delete("/tareas/:id", function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
 	var matchedTarea = _.findWhere(tareas, {id: tareaID});
@@ -55,6 +57,30 @@ app.delete("/tareas/:id", function(req, res){
 		tareas = _.without(tareas, matchedTarea); // Devuelve el array quitando matchedTarea
 		res.json(matchedTarea);
 	}
+});
+
+// PUT /tareas/:id
+app.put("/tareas/:id", function(req, res){
+	var tareaID = parseInt(req.params.id, 10);
+	var matchedTarea = _.findWhere(tareas, {id: tareaID});
+	var body = _.pick(req.body, 'description', 'completed');
+	var atributos = {};
+
+	if(!matchedTarea)
+		return res.status(400).send();
+
+	if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)){
+		atributos.completed = body.completed;
+	} else if(body.hasOwnProperty('completed')){
+		return res.status(400).send();
+	} 
+
+	if(body.hasOwnProperty('description') && _.isString(body.description))
+		atributos.description = body.description;
+	else if(body.hasOwnProperty('description'))
+		return res.status(400).send();
+
+	_.extend(matchedTarea, atributos); // Copia las nuevas propiedas y sobreescribe si existe
 });
 
 app.listen(PORT, function(){
