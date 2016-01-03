@@ -12,9 +12,17 @@ app.get("/", function(req, res){
 	res.send("Todo API Root");
 });
 
-// GET /tareas
+// GET /tareas?completed=true
 app.get("/tareas", function(req, res){
-	res.json(tareas);
+	var queryParams = req.query;
+	var filtroTareas = tareas;
+
+	if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true')
+		filtroTareas = _.where(filtroTareas, {completed: true});
+	else if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'false')
+		filtroTareas = _.where(filtroTareas, {completed: false});
+
+	res.json(filtroTareas);
 });
 
 
@@ -35,7 +43,7 @@ app.post("/tareas", function(req, res){
 	var body = _.pick(req.body, "description", "completed");
 
 	if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) // Comprobar que completed sea booleano, description sea string y no vacia
-		res.status(400).send(); // 400 => Bad Request
+		return res.status(400).send(); // 400 => Bad Request
 
 	body.description = body.description.trim(); // Quita espacios principio y final
 
