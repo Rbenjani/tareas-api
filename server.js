@@ -12,15 +12,22 @@ app.get("/", function(req, res){
 	res.send("Todo API Root");
 });
 
-// GET /tareas?completed=true
+// GET /tareas?completed=true&q=house
 app.get("/tareas", function(req, res){
 	var queryParams = req.query;
 	var filtroTareas = tareas;
 
+	// Filtro por completado
 	if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true')
 		filtroTareas = _.where(filtroTareas, {completed: true});
 	else if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'false')
 		filtroTareas = _.where(filtroTareas, {completed: false});
+
+	// Filtro por descripcion
+	if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0)
+		filtroTareas = _.filter(filtroTareas, function(tarea){
+			return tarea.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) != -1;
+		});
 
 	res.json(filtroTareas);
 });
