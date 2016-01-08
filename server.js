@@ -1,6 +1,8 @@
 var express = require("express");
 var bodyParser = require("body-parser");
 var _ = require("underscore");
+var db = require('./db.js');
+
 var app = express();
 var PORT = process.env.PORT || 3000;
 var tareas = [];
@@ -9,7 +11,7 @@ var sigTareaId = 1;
 app.use(bodyParser.json());
 
 app.get("/", function(req, res){
-	res.send("Todo API Root");
+	res.send("API Tareas");
 });
 
 // GET /tareas?completed=true&q=house
@@ -36,6 +38,16 @@ app.get("/tareas", function(req, res){
 // GET /tareas/:id
 app.get("/tareas/:id", function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
+
+	db.tarea.findById(tareaID).then(function(tarea){
+		if(!!tarea) // Cast to boolean
+			res.json(tarea.toJSON());
+		else
+			res.status(404).send();
+	}, function(e){
+		res.status(500).send();
+	});
+
 	var matchedTarea = _.findWhere(tareas, {id: tareaID});
 
 	if(matchedTarea){
@@ -49,16 +61,22 @@ app.get("/tareas/:id", function(req, res){
 app.post("/tareas", function(req, res){
 	var body = _.pick(req.body, "description", "completed");
 
-	if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) // Comprobar que completed sea booleano, description sea string y no vacia
-		return res.status(400).send(); // 400 => Bad Request
+	db.tarea.create(body).then(function(){
+		res.json(tarea.toJSON());
+	}, function(e){
+		res.status(400).json(e);
+	});
 
-	body.description = body.description.trim(); // Quita espacios principio y final
+	// if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) // Comprobar que completed sea booleano, description sea string y no vacia
+	// 	return res.status(400).send(); // 400 => Bad Request
 
-	body.id = sigTareaId++;
-	tareas.push(body);
+	// body.description = body.description.trim(); // Quita espacios principio y final
 
-	console.log("Description: " + body);
-	res.json(body);
+	// body.id = sigTareaId++;
+	// tareas.push(body);
+
+	// console.log("Description: " + body);
+	// res.json(body);
 });
 
 // DELETE /tareas/:id
@@ -96,8 +114,12 @@ app.put("/tareas/:id", function(req, res){
 		return res.status(400).send();
 
 	_.extend(matchedTarea, atributos); // Copia las nuevas propiedas y sobreescribe si existe
+	res.json(matchedTarea);
 });
 
-app.listen(PORT, function(){
-	console.log("Express listening on port " + PORT + "!");
-})
+db.sequelize.sync().then(function(){
+	app.listen(PORT, function(){
+		console.log("Express listening on port " + PORT + "!");
+	})
+});
+
