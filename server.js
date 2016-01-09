@@ -84,6 +84,22 @@ app.post("/tareas", function(req, res){
 // DELETE /tareas/:id
 app.delete("/tareas/:id", function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
+	db.tarea.destroy({
+		where: {
+			id: tareaID
+		}
+	}).then(function(filasBorradas){
+		if(filasBorradas > 0)
+			res.status(204).send(); // 204 => Sin contenido
+		else {
+			res.status(404).json({
+				error: 'No se econtró tarea con el id ' + tareaID
+			});
+		}
+	}, function(e){
+		res.status(500).send();
+	})
+
 	var matchedTarea = _.findWhere(tareas, {id: tareaID});
 
 	if(!matchedTarea)
@@ -92,6 +108,7 @@ app.delete("/tareas/:id", function(req, res){
 		tareas = _.without(tareas, matchedTarea); // Devuelve el array quitando matchedTarea
 		res.json(matchedTarea);
 	}
+		}
 });
 
 // PUT /tareas/:id
