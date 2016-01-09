@@ -15,5 +15,13 @@ module.exports = function(sequelize, tipos){
 				len: [7,100]
 			}
 		}
+	}, {
+		hooks: {
+			beforeValidate: function(usuario, options){
+				if(typeof usuario.email === 'string') {
+					usuario.email = usuario.email.toLowerCase();
+				}
+			}
+		}
 	})
 } 
