@@ -15,25 +15,27 @@ app.get("/", function(req, res){
 });
 
 // GET /tareas?completed=true&q=house
-app.get("/tareas", function(req, res){
-	var queryParams = req.query;
-	var filtroTareas = tareas;
+app.get("/tareas", function(req, res){ 
+	var query = req.query;
+	var where = {};
 
-	// Filtro por completado
-	if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true')
-		filtroTareas = _.where(filtroTareas, {completed: true});
-	else if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'false')
-		filtroTareas = _.where(filtroTareas, {completed: false});
+	if(query.hasOwnProperty('completed') && query.completed === 'true')
+		where.completed = true;
+	else if(query.hasOwnProperty('completed') && query.completed === 'false')
+		where.completed = false;
 
-	// Filtro por descripcion
-	if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0)
-		filtroTareas = _.filter(filtroTareas, function(tarea){
-			return tarea.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) != -1;
-		});
+	if(query.hasOwnProperty('q') && query.q.length > 0){
+		where.description = {
+			$like: '%' + query.q + '%'
+		}
+	} 
 
-	res.json(filtroTareas);
+	db.tarea.findAll({where: where}).then(function(tareas){
+		res.json(tareas);
+	}, function(e){
+		res.status(500).send();
+	})
 });
-
 
 // GET /tareas/:id
 app.get("/tareas/:id", function(req, res){
