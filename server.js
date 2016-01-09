@@ -48,15 +48,7 @@ app.get("/tareas/:id", function(req, res){
 			res.status(404).send();
 	}, function(e){
 		res.status(500).send();
-	});
-
-	var matchedTarea = _.findWhere(tareas, {id: tareaID});
-
-	if(matchedTarea){
-		res.json(matchedTarea);
-	} else {
-		res.status(404).send();
-	}	
+	});	
 });
 
 // POST /tareas
@@ -68,17 +60,6 @@ app.post("/tareas", function(req, res){
 	}, function(e){
 		res.status(400).json(e);
 	});
-
-	// if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) // Comprobar que completed sea booleano, description sea string y no vacia
-	// 	return res.status(400).send(); // 400 => Bad Request
-
-	// body.description = body.description.trim(); // Quita espacios principio y final
-
-	// body.id = sigTareaId++;
-	// tareas.push(body);
-
-	// console.log("Description: " + body);
-	// res.json(body);
 });
 
 // DELETE /tareas/:id
@@ -134,7 +115,7 @@ app.post('/users', function(req, res){
 	var body = _.pick(req.body, 'email', 'password');
 
 	db.usuario.create(body).then(function(usuario){
-		res.json(usuario.toJSON());
+		res.json(usuario.toPublicJSON());
 	}, function(e){
 		res.status(400).json(e);
 	});
