@@ -100,40 +100,34 @@ app.delete("/tareas/:id", function(req, res){
 		res.status(500).send();
 	})
 
-	var matchedTarea = _.findWhere(tareas, {id: tareaID});
-
-	if(!matchedTarea)
-		res.status(404).json({"error":"Tarea no encontrada con esa id"});
-	else {
-		tareas = _.without(tareas, matchedTarea); // Devuelve el array quitando matchedTarea
-		res.json(matchedTarea);
-	}
-		}
 });
 
 // PUT /tareas/:id
 app.put("/tareas/:id", function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
-	var matchedTarea = _.findWhere(tareas, {id: tareaID});
 	var body = _.pick(req.body, 'description', 'completed');
 	var atributos = {};
 
-	if(!matchedTarea)
-		return res.status(400).send();
-
-	if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)){
+	if(body.hasOwnProperty('completed')){
 		atributos.completed = body.completed;
-	} else if(body.hasOwnProperty('completed')){
-		return res.status(400).send();
 	} 
 
-	if(body.hasOwnProperty('description') && _.isString(body.description))
+	if(body.hasOwnProperty('description'))
 		atributos.description = body.description;
-	else if(body.hasOwnProperty('description'))
-		return res.status(400).send();
-
-	_.extend(matchedTarea, atributos); // Copia las nuevas propiedas y sobreescribe si existe
-	res.json(matchedTarea);
+	
+	db.tarea.findById(tareaID).then(function(tarea){
+		if(tarea){
+			tarea.update(atributos).then(function(tarea){
+				res.json(tarea.toJSON());
+			}, function(e){
+				res.status(400).json(e);
+			});
+		} else {
+			res.status(404).send();
+		}
+	}, function(){
+		res.status(500).send();
+	});
 });
 
 db.sequelize.sync().then(function(){
