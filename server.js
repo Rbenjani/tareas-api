@@ -3,6 +3,7 @@ var bodyParser = require("body-parser");
 var _ = require("underscore");
 var db = require('./db.js');
 var bcrypt = require('bcrypt');
+var middleware = require('./middleware.js')(db);
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -16,7 +17,7 @@ app.get("/", function(req, res){
 });
 
 // GET /tareas?completed=true&q=house
-app.get("/tareas", function(req, res){ 
+app.get("/tareas", middleware.requireAuthentication, function(req, res){ 
 	var query = req.query;
 	var where = {};
 
@@ -39,7 +40,7 @@ app.get("/tareas", function(req, res){
 });
 
 // GET /tareas/:id
-app.get("/tareas/:id", function(req, res){
+app.get("/tareas/:id", middleware.requireAuthentication, function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
 
 	db.tarea.findById(tareaID).then(function(tarea){
@@ -53,7 +54,7 @@ app.get("/tareas/:id", function(req, res){
 });
 
 // POST /tareas
-app.post("/tareas", function(req, res){
+app.post("/tareas", middleware.requireAuthentication, function(req, res){
 	var body = _.pick(req.body, "description", "completed");
 
 	db.tarea.create(body).then(function(){
@@ -64,7 +65,7 @@ app.post("/tareas", function(req, res){
 });
 
 // DELETE /tareas/:id
-app.delete("/tareas/:id", function(req, res){
+app.delete("/tareas/:id", middleware.requireAuthentication, function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
 	db.tarea.destroy({
 		where: {
@@ -85,7 +86,7 @@ app.delete("/tareas/:id", function(req, res){
 });
 
 // PUT /tareas/:id
-app.put("/tareas/:id", function(req, res){
+app.put("/tareas/:id", middleware.requireAuthentication, function(req, res){
 	var tareaID = parseInt(req.params.id, 10);
 	var body = _.pick(req.body, 'description', 'completed');
 	var atributos = {};
